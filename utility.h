@@ -15,6 +15,7 @@
 #include <algorithm>
 #include <limits.h>
 #include <omp.h>
+#include <unistd.h>
 
 using namespace std;
 
@@ -29,18 +30,6 @@ struct Point{
     int y;
     Point() : x(0), y(0){};
     Point(int in_x, int in_y) : x(in_x), y(in_y){};
-};
-
-
-struct Node_State{
-    int x;
-    int y;
-    int health;
-    Node_State(int in_x, int in_y, int in_h) : x(in_x), y(in_y), health(in_h){};
-    
-    bool operator==(const Node_State &other) const{
-        return (x == other.x && y == other.y && health == other.health);
-    }
 };
 
 

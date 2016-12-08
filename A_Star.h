@@ -29,10 +29,8 @@ class A_Star{
      *     1: Zero Heuristic
      *     2: Move Horizontally
      *     3: Wall
-     * verbose specifies if print out 2b result
      */
     int flag;
-    int verbose;
     vector<vector<vector<AS_Location>>> map_v;
     AS_Point start, end;
     int rows, columns;
@@ -69,11 +67,10 @@ class A_Star{
                 }
                 else{
                     // go up and find first open tile
-                    int north_open = p.x, north_manh = 0, up = p.x - 1;
+                    int north_manh = 0, up = p.x - 1;
                     for (; up >= 0; up--){
                         if (p.y + 1 < columns && map_v[up][p.y + 1][0].val != 'X'
                             && map_v[up][p.y + 1][0].val != 'O'){
-                            north_open = up;
                             break;
                         }
                     }
@@ -81,17 +78,17 @@ class A_Star{
                         INT_MAX : abs(p.x - up) + abs(end.y - p.y) + abs(end.x - up);
                     
                     // go down and find first open tile
-                    int south_open = p.x, south_manh = 0, down = p.x + 1;
+                    int south_manh = 0, down = p.x + 1;
                     for (; down < rows; down++){
                         if (p.y + 1 < columns && map_v[down][p.y + 1][0].val != 'X'
                             && map_v[down][p.y + 1][0].val != 'O'){
-                            south_open = down;
                             break;
                         }
                     }
                     south_manh = (down == rows)?
                         INT_MAX : abs(down - p.x) + abs(end.y - p.y) + abs(down - end.x);
                     distance = min(north_manh, south_manh);
+                    //distance = north_manh + south_manh;
                     if (distance == INT_MAX) distance = abs(p.x - end.x) + abs(p.y - end.y);
                 }
                 break;
@@ -111,7 +108,7 @@ class A_Star{
     }
 public:
     A_Star(vector<vector<Location>>& in_map_v, int in_s_x, int in_s_y,
-               int in_e_x, int in_e_y, string& in_f_name, int in_flag, int in_verbose){
+               int in_e_x, int in_e_y, string& in_f_name, int in_flag){
 		start_time = omp_get_wtime();
         rows = (int)in_map_v.size();
         columns = (int)in_map_v[0].size();
@@ -144,7 +141,6 @@ public:
         node_examine = 0;
         file_name = in_f_name;
         flag = in_flag;
-        verbose = in_verbose;
     }
     
 	void search_path(){
@@ -194,6 +190,8 @@ public:
 					break;
 				}
 
+				// sleep!!!!
+				//usleep(300);
 
 				if (cur.x - 1 >= 0){
 					AS_Point tmp(cur.x - 1, cur.y);
@@ -260,89 +258,6 @@ public:
 		end_time = omp_get_wtime();
 	}
 
-	/*
-    void search_path(){
-        map_v[start.x][start.y][5].pre_dir = 'X';
-        s.push(start);
-        explored[start.x][start.y][start.health] = start.cost + start.dis;
-        
-        while (!s.empty()){
-            AS_Point cur = s.top();
-            s.pop();
-            
-            if (explored[cur.x][cur.y][cur.health] != cur.cost + cur.dis) continue;
-            explored[cur.x][cur.y][cur.health] = INT_MIN;
-            
-            int cur_cost = 1;
-            if ((map_v[cur.x][cur.y][cur.health]).val == '*') cur_cost = 3;
-            
-            
-            // update health
-            int old_health = cur.health;
-            update_health(cur);
-            
-            //save state of current point
-            if (cur.health <= 0) continue;
-            node_examine++;
-            if (cur.x == end.x && cur.y == end.y){
-                final_health = cur.health;
-                break;
-            }
-
-            if (cur.x - 1 >= 0){
-                AS_Point tmp(cur.x - 1, cur.y);
-                if (explored[cur.x - 1][cur.y][cur.health] > cur.cost + cur_cost + getDis(tmp)
-                    && (map_v[cur.x - 1][cur.y][cur.health]).val != 'X' && (map_v[cur.x - 1][cur.y][cur.health]).val != 'O'){
-                    
-                    explored[cur.x - 1][cur.y][cur.health] = cur.cost + cur_cost + getDis(tmp);
-                    s.push(AS_Point(cur.x - 1, cur.y, cur.cost + cur_cost, getDis(tmp), cur.health, 'N'));
-                    (map_v[cur.x - 1][cur.y][cur.health]).pre_dir = 'N';
-                    (map_v[cur.x - 1][cur.y][cur.health]).pre_health = old_health;
-                    
-                }
-            }
-            if (cur.y - 1 >= 0){
-                AS_Point tmp(cur.x, cur.y - 1);
-                if (explored[cur.x][cur.y - 1][cur.health] > cur.cost + cur_cost + getDis(tmp)
-                    && (map_v[cur.x][cur.y - 1][cur.health]).val != 'X' && (map_v[cur.x][cur.y - 1][cur.health]).val != 'O'){
-                    
-                    explored[cur.x][cur.y - 1][cur.health] = cur.cost + cur_cost + getDis(tmp);
-                    s.push(AS_Point(cur.x, cur.y - 1, cur.cost + cur_cost, getDis(tmp), cur.health, 'W'));
-                    (map_v[cur.x][cur.y - 1][cur.health]).pre_dir = 'W';
-                    (map_v[cur.x][cur.y - 1][cur.health]).pre_health = old_health;
-                   
-                }
-            }
-            if (cur.y + 1 < columns){
-                AS_Point tmp(cur.x, cur.y + 1);
-                if (explored[cur.x][cur.y + 1][cur.health] > cur.cost + cur_cost + getDis(tmp)
-                    && (map_v[cur.x][cur.y + 1][cur.health]).val != 'X' && (map_v[cur.x][cur.y + 1][cur.health]).val != 'O'){
-                    
-                    explored[cur.x][cur.y + 1][cur.health] = cur.cost + cur_cost + getDis(tmp);
-                    s.push(AS_Point(cur.x, cur.y + 1, cur.cost + cur_cost, getDis(tmp), cur.health, 'E'));
-                    (map_v[cur.x][cur.y + 1][cur.health]).pre_dir = 'E';
-                    (map_v[cur.x][cur.y + 1][cur.health]).pre_health = old_health;
-                    
-                }
-            }
-            if (cur.x + 1 < rows){
-                AS_Point tmp(cur.x + 1, cur.y);
-                if (explored[cur.x + 1][cur.y][cur.health] > cur.cost + cur_cost + getDis(tmp)
-                    && (map_v[cur.x + 1][cur.y][cur.health]).val != 'X' && (map_v[cur.x + 1][cur.y][cur.health]).val != 'O'){
-                    
-                    explored[cur.x + 1][cur.y][cur.health] = cur.cost + cur_cost + getDis(tmp);
-                    s.push(AS_Point(cur.x + 1, cur.y, cur.cost + cur_cost, getDis(tmp), cur.health, 'S'));
-                    (map_v[cur.x + 1][cur.y][cur.health]).pre_dir = 'S';
-                    (map_v[cur.x + 1][cur.y][cur.health]).pre_health = old_health;
-                    
-                }
-            }
-            
-        }
-
-		end_time = omp_get_wtime();
-    }
-	*/
     
     void print_result(){
         int x = end.x, y = end.y, h = final_health;
@@ -373,34 +288,33 @@ public:
         }
         
         reverse(path.begin(), path.end());
-        if (flag == 0 && verbose){
-            cout << "**************** A* on "<< file_name << " with Manhattan Distance heuristic ****************" << endl;
-            cout << "Path: " << path << endl;
-            cout << "Path Length: " << path.length() << endl;
-            cout << "Path Cost: " << path_cost << endl;
-            cout << "# Nodes Examined: " << node_examine << endl;
-			cout << "Finish time: " << end_time - start_time <<endl;
-            cout << endl;
-        }
-        else{
-            switch (flag){
-                case 0:
-                    cout << "2 Manh: " << node_examine << endl;
-                    break;
-                case 1:
-                    cout << "1 Zero: " << node_examine << endl;
-                    break;
-                case 2:
-                    cout << "3 East: " << node_examine << endl;
-                    break;
-                case 3:
-                    cout << "4 Wall: " << node_examine << endl;
-                    break;
-                default:
-                    cout << "error" << endl;
-                    break;
-            }
-        }
+
+		string heuristic_name;
+		switch (flag){
+			case 0:
+				heuristic_name = "Manhattan Distance";
+				break;
+			case 1:
+				heuristic_name = "Zero Heuristic";
+				break;
+			case 2:
+				heuristic_name = "Move Horizontally Heuristic";
+				break;
+			case 3:
+				heuristic_name = "Wall Heuristic";
+				break;
+			default:
+				cout << "error" << endl;
+				break;
+		}
+
+		cout << "**************** A* on "<< file_name << " with heuristic function: " << heuristic_name << " ****************" << endl;
+		cout << "Path: " << path << endl;
+		cout << "Path Length: " << path.length() << endl;
+		cout << "Path Cost: " << path_cost << endl;
+		cout << "# Nodes Examined: " << node_examine << endl;
+		cout << "Finish time: " << end_time - start_time <<endl;
+		cout << endl;
     }
     
 };

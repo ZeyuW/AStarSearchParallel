@@ -13,7 +13,7 @@ void handle_infile(string& file_name, vector<vector<Location>>& map_v,
         int line_num = 0;
         while (getline(map_file, line)){
             map_v.push_back({});
-            for (int i = 0; i < line.length(); i++){
+            for (int i = 0; i < (int)line.length(); i++){
                 map_v.back().push_back(Location(' ', line[i]));
                 if (line[i] == 'S'){
                     start_x = line_num;
@@ -52,31 +52,23 @@ int main(int argc, const char * argv[]) {
     handle_infile(file_name, map_v, start_x, start_y, end_x, end_y);
     
     // Part 2B: A_Star Search
-    A_Star astar(map_v, start_x, start_y, end_x, end_y, file_name, 0, 1);
+    A_Star astar(map_v, start_x, start_y, end_x, end_y, file_name, 0);
     astar.search_path();
     astar.print_result();
-    
-    // Part 2C: Different Heuristics
-    // Change the filename here if you want to run Part2C on a different map file
-    file_name = "large_map2.txt";
-    map_v.clear();
-    handle_infile(file_name, map_v, start_x, start_y, end_x, end_y);
-    
-    cout << "**************** Different Heuristics of A* on " << file_name << " ****************" << endl;
-    cout << "# Nodes Examined: " << endl;
-    A_Star zero(map_v, start_x, start_y, end_x, end_y, file_name, 1, 0);
+	
+    A_Star zero(map_v, start_x, start_y, end_x, end_y, file_name, 1);
     zero.search_path();
     zero.print_result();
     
-    A_Star manh(map_v, start_x, start_y, end_x, end_y, file_name, 0, 0);
+    A_Star manh(map_v, start_x, start_y, end_x, end_y, file_name, 0);
     manh.search_path();
     manh.print_result();
     
-    A_Star east(map_v, start_x, start_y, end_x, end_y, file_name, 2, 0);
+    A_Star east(map_v, start_x, start_y, end_x, end_y, file_name, 2);
     east.search_path();
     east.print_result();
     
-    A_Star wall(map_v, start_x, start_y, end_x, end_y, file_name, 3, 0);
+    A_Star wall(map_v, start_x, start_y, end_x, end_y, file_name, 3);
     wall.search_path();
     wall.print_result();
     

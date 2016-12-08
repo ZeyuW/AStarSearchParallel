@@ -1,0 +1,12 @@
+**************** A* on large_map2.txt with Manhattan Distance heuristic ****************
+Path: EEENNNNNNEENNNEESSSSSSSSSSSSSSEENNNNNNNNNNNNNNNNNNNNEENNNNNNNNEESSSSSSSSSSSSEESSSSSSSSSSSSSEENNNNNNNNNNNNNNNEENNEESSSSSSSSSSSEESSSSEEEESSSSSSSSEEEESSSSSSSSSEENNNNNNNNNNNNNNNNNE
+Path Length: 176
+Path Cost: 188
+# Nodes Examined: 3788
+
+**************** Different Heuristics of A* on large_map2.txt ****************
+# Nodes Examined: 
+1 Zero: 3850
+2 Manh: 3788
+3 East: 3841
+4 Wall: 3764
