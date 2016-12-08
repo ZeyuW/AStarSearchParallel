@@ -28,35 +28,6 @@ struct Point{
     Point(int in_x, int in_y) : x(in_x), y(in_y){};
 };
 
-struct UCS_Point{
-    int x;
-    int y;
-    int cost;
-    UCS_Point() : x(0), y(0), cost(0){};
-    UCS_Point(int in_x, int in_y, int in_cost) : x(in_x), y(in_y), cost(in_cost){};
-};
-
-struct GBFS_Point{
-    int x;
-    int y;
-    int cost;
-    int health;
-    char dir;
-    GBFS_Point() : x(0), y(0), cost(0), health(5), dir(' '){};
-    GBFS_Point(int in_x, int in_y) : x(in_x), y(in_y), cost(0), health(5){};
-    GBFS_Point(int in_x, int in_y, int in_cost, int in_h) : x(in_x), y(in_y),
-        cost(in_cost), health(in_h), dir(' '){};
-    GBFS_Point(int in_x, int in_y, int in_cost, int in_h, int in_dir) : x(in_x), y(in_y),
-        cost(in_cost), health(in_h), dir(in_dir){};
-};
-
-struct GBFS_Location{
-    char pre_dir;
-    int pre_health;
-    char val;
-    GBFS_Location() : pre_dir(' '), pre_health(5), val(' '){};
-    GBFS_Location(char in_dir, int in_pre_h, char in_val) : pre_dir(in_dir), pre_health(in_pre_h), val(in_val){};
-};
 
 struct Node_State{
     int x;

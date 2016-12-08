@@ -1,7 +1,3 @@
-#include "DFS.h"
-#include "BFS.h"
-#include "UCS.h"
-#include "Greedy_BFS.h"
 #include "A_Star.h"
 
 using namespace std;
@@ -44,47 +40,14 @@ int main(int argc, const char * argv[]) {
     /**************** Part 1 ****************/
 
     // Change the filename here if you want to run Part1 on a different map file
-    string file_name = "large_map1.txt";
+    string file_name = "large_map2.txt";
     int start_x, start_y, end_x, end_y;
     handle_infile(file_name, map_v, start_x, start_y, end_x, end_y);
-    
-    
-    // Part 1A: DFS
-    DFS dfs(map_v, start_x, start_y, end_x, end_y, file_name);
-    dfs.search_path();
-    dfs.print_result();
-    
-    // Part 1B: BFS
-    BFS bfs(map_v, start_x, start_y, end_x, end_y, file_name);
-    bfs.search_path();
-    bfs.print_result();
-    
-    
-    // Part 1C: UCS
-    UCS ucs(map_v, start_x, start_y, end_x, end_y, file_name);
-    ucs.search_path();
-    ucs.print_result();
-    
-    
-    /**************** Part 2 ****************/
-
-    // Change the filename here if you want to run Part2A and 2B on a different map file
-    file_name = "large_map2.txt";
-    map_v.clear();
-    handle_infile(file_name, map_v, start_x, start_y, end_x, end_y);
-    
-    
-    // Part 2A: Greedy BFS
-    Greedy_BFS gbfs(map_v, start_x, start_y, end_x, end_y, file_name);
-    gbfs.search_path();
-    gbfs.print_result();
-    
     
     // Part 2B: A_Star Search
     A_Star astar(map_v, start_x, start_y, end_x, end_y, file_name, 0, 1);
     astar.search_path();
     astar.print_result();
-    
     
     // Part 2C: Different Heuristics
     // Change the filename here if you want to run Part2C on a different map file
