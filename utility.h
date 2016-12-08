@@ -12,6 +12,9 @@
 #include <utility>
 #include <math.h>
 #include <unordered_map>
+#include <algorithm>
+#include <limits.h>
+#include <omp.h>
 
 using namespace std;
 

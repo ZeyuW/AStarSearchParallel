@@ -34,6 +34,13 @@ void handle_infile(string& file_name, vector<vector<Location>>& map_v,
 }
 
 int main(int argc, const char * argv[]) {
+	if (argc < 2){
+		cerr << "Usage: <program> <#cores>" <<endl;
+		exit(1);
+	}
+	int num_threads = atoi(argv[1]);
+	omp_set_num_threads(num_threads);
+
     vector<vector<Location>> map_v;
     
     // parse input files and save results into map_v
