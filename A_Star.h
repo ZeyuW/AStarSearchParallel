@@ -29,6 +29,7 @@ class A_Star{
      *     1: Zero Heuristic
      *     2: Move Horizontally
      *     3: Wall
+	 *     4: Way Points
      */
     int flag;
     vector<vector<vector<AS_Location>>> map_v;
@@ -41,6 +42,7 @@ class A_Star{
     string file_name;
     priority_queue<AS_Point, vector<AS_Point>, comp> s;
     vector<vector<vector<int>>> explored;
+	unordered_map<Point, int> way_points_map;
 
 	// For parallel
 	double start_time, end_time;
@@ -61,37 +63,60 @@ class A_Star{
                 distance = abs(p.x - end.x) / (4.0) + abs(p.y - end.y);
                 break;
             case 3: // Wall
-                if ((p.y + 1 < columns && map_v[p.x][p.y + 1][0].val != 'X'
-                    && map_v[p.x][p.y + 1][0].val != 'O') || p.y == columns - 1){
-                    distance = abs(p.x - end.x) + abs(p.y - end.y);
-                }
-                else{
-                    // go up and find first open tile
-                    int north_manh = 0, up = p.x - 1;
-                    for (; up >= 0; up--){
-                        if (p.y + 1 < columns && map_v[up][p.y + 1][0].val != 'X'
-                            && map_v[up][p.y + 1][0].val != 'O'){
-                            break;
-                        }
-                    }
-                    north_manh = (up == -1)?
-                        INT_MAX : abs(p.x - up) + abs(end.y - p.y) + abs(end.x - up);
-                    
-                    // go down and find first open tile
-                    int south_manh = 0, down = p.x + 1;
-                    for (; down < rows; down++){
-                        if (p.y + 1 < columns && map_v[down][p.y + 1][0].val != 'X'
-                            && map_v[down][p.y + 1][0].val != 'O'){
-                            break;
-                        }
-                    }
-                    south_manh = (down == rows)?
-                        INT_MAX : abs(down - p.x) + abs(end.y - p.y) + abs(down - end.x);
-                    distance = min(north_manh, south_manh);
-                    //distance = north_manh + south_manh;
-                    if (distance == INT_MAX) distance = abs(p.x - end.x) + abs(p.y - end.y);
-                }
+				{
+					if ((p.y + 1 < columns && map_v[p.x][p.y + 1][0].val != 'X'
+						&& map_v[p.x][p.y + 1][0].val != 'O') || p.y == columns - 1){
+						distance = abs(p.x - end.x) + abs(p.y - end.y);
+					}
+					else{
+						// go up and find first open tile
+						int north_manh = 0, up = p.x - 1;
+						for (; up >= 0; up--){
+							if (p.y + 1 < columns && map_v[up][p.y + 1][0].val != 'X'
+								&& map_v[up][p.y + 1][0].val != 'O'){
+								break;
+							}
+						}
+						north_manh = (up == -1)?
+							INT_MAX : abs(p.x - up) + abs(end.y - p.y) + abs(end.x - up);
+						
+						// go down and find first open tile
+						int south_manh = 0, down = p.x + 1;
+						for (; down < rows; down++){
+							if (p.y + 1 < columns && map_v[down][p.y + 1][0].val != 'X'
+								&& map_v[down][p.y + 1][0].val != 'O'){
+								break;
+							}
+						}
+						south_manh = (down == rows)?
+							INT_MAX : abs(down - p.x) + abs(end.y - p.y) + abs(down - end.x);
+						distance = min(north_manh, south_manh);
+						//distance = north_manh + south_manh;
+						if (distance == INT_MAX) distance = abs(p.x - end.x) + abs(p.y - end.y);
+					}
+
+				}
                 break;
+			case 4:
+				{
+					queue<Point> q;
+					q.push(Point(p.x, p.y));
+					while (!q.empty()){
+						Point c_p = q.front();
+						q.pop();
+						if (way_points_map.find(c_p) != way_points_map.end()){
+							distance = abs(p.x - c_p.x) + abs(p.y - c_p.y) + way_points_map[c_p];
+							break;
+						}
+						//if (c_p.x + 1 < rows) q.push(Point(c_p.x + 1, c_p.y));
+						if (c_p.x != end.x){
+							if (c_p.x < end.x) q.push(Point(c_p.x + 1, c_p.y));
+							else q.push(Point(c_p.x - 1, c_p.y));
+						}
+						if (c_p.y + 1 < columns) q.push(Point(c_p.x, c_p.y + 1));
+					}
+				}
+				break;
             default: // ERROR
                 distance = 0;
                 break;
@@ -108,7 +133,8 @@ class A_Star{
     }
 public:
     A_Star(vector<vector<Location>>& in_map_v, int in_s_x, int in_s_y,
-               int in_e_x, int in_e_y, string& in_f_name, int in_flag){
+               int in_e_x, int in_e_y, string& in_f_name, 
+			   unordered_map<Point, int> in_way_points_map, int in_flag){
 		start_time = omp_get_wtime();
         rows = (int)in_map_v.size();
         columns = (int)in_map_v[0].size();
@@ -140,6 +166,7 @@ public:
         path_cost = 1;
         node_examine = 0;
         file_name = in_f_name;
+		way_points_map = in_way_points_map;
         flag = in_flag;
     }
     
@@ -215,7 +242,9 @@ public:
 						&& (map_v[cur.x][cur.y - 1][cur.health]).val != 'X' && (map_v[cur.x][cur.y - 1][cur.health]).val != 'O'){
 						
 						explored[cur.x][cur.y - 1][cur.health] = cur.cost + cur_cost + getDis(tmp);
+						omp_set_lock(&queue_lock);
 						s.push(AS_Point(cur.x, cur.y - 1, cur.cost + cur_cost, getDis(tmp), cur.health, 'W'));
+						omp_unset_lock(&queue_lock);
 						(map_v[cur.x][cur.y - 1][cur.health]).pre_dir = 'W';
 						(map_v[cur.x][cur.y - 1][cur.health]).pre_health = old_health;
 					   
@@ -230,7 +259,9 @@ public:
 						&& (map_v[cur.x][cur.y + 1][cur.health]).val != 'X' && (map_v[cur.x][cur.y + 1][cur.health]).val != 'O'){
 						
 						explored[cur.x][cur.y + 1][cur.health] = cur.cost + cur_cost + getDis(tmp);
+						omp_set_lock(&queue_lock);
 						s.push(AS_Point(cur.x, cur.y + 1, cur.cost + cur_cost, getDis(tmp), cur.health, 'E'));
+						omp_unset_lock(&queue_lock);
 						(map_v[cur.x][cur.y + 1][cur.health]).pre_dir = 'E';
 						(map_v[cur.x][cur.y + 1][cur.health]).pre_health = old_health;
 						
@@ -244,7 +275,9 @@ public:
 						&& (map_v[cur.x + 1][cur.y][cur.health]).val != 'X' && (map_v[cur.x + 1][cur.y][cur.health]).val != 'O'){
 						
 						explored[cur.x + 1][cur.y][cur.health] = cur.cost + cur_cost + getDis(tmp);
+						omp_set_lock(&queue_lock);
 						s.push(AS_Point(cur.x + 1, cur.y, cur.cost + cur_cost, getDis(tmp), cur.health, 'S'));
+						omp_unset_lock(&queue_lock);
 						(map_v[cur.x + 1][cur.y][cur.health]).pre_dir = 'S';
 						(map_v[cur.x + 1][cur.y][cur.health]).pre_health = old_health;
 						
@@ -303,6 +336,9 @@ public:
 			case 3:
 				heuristic_name = "Wall Heuristic";
 				break;
+			case 4:
+				heuristic_name = "Way Points";
+				break;
 			default:
 				cout << "error" << endl;
 				break;
@@ -313,7 +349,7 @@ public:
 		cout << "Path Length: " << path.length() << endl;
 		cout << "Path Cost: " << path_cost << endl;
 		cout << "# Nodes Examined: " << node_examine << endl;
-		cout << "Finish time: " << end_time - start_time <<endl;
+		cout << "Finish time: " << 1000 * (end_time - start_time) << " ms" <<endl;
 		cout << endl;
     }
     

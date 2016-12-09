@@ -16,6 +16,7 @@
 #include <limits.h>
 #include <omp.h>
 #include <unistd.h>
+#include <functional>
 
 using namespace std;
 
@@ -30,6 +31,28 @@ struct Point{
     int y;
     Point() : x(0), y(0){};
     Point(int in_x, int in_y) : x(in_x), y(in_y){};
+
+	bool operator==(const Point& p) const{
+		return (x == p.x && y == p.y);
+	}
+};
+
+namespace std{
+	template<>
+	struct hash<Point>{
+		std::size_t operator()(const Point& p) const{
+			return hash<int>()(p.x) ^ (hash<int>()(p.y) << 1);
+		}
+	};
+}
+
+
+struct UCS_Point{
+	int x;
+	int y;
+	int cost;
+	UCS_Point() : x(0), y(0){};
+	UCS_Point(int in_x, int in_y, int in_cost) : x(in_x), y(in_y), cost(in_cost){};
 };
 
 
