@@ -99,23 +99,20 @@ class A_Star{
                 break;
 			case 4:
 				{
-					queue<Point> q;
-					q.push(Point(p.x, p.y));
-					while (!q.empty()){
-						Point c_p = q.front();
-						q.pop();
-						if (way_points_map.find(c_p) != way_points_map.end()){
-							distance = abs(p.x - c_p.x) + abs(p.y - c_p.y) + way_points_map[c_p];
-							break;
-						}
-						//if (c_p.x + 1 < rows) q.push(Point(c_p.x + 1, c_p.y));
-						if (c_p.x != end.x){
-							if (c_p.x < end.x) q.push(Point(c_p.x + 1, c_p.y));
-							else q.push(Point(c_p.x - 1, c_p.y));
-						}
-						if (c_p.y + 1 < columns) q.push(Point(c_p.x, c_p.y + 1));
+					int xx = p.x, yy = p.y;
+					if (xx % 2 != 0){
+						++xx;
+						++distance;
 					}
+					if (yy % 2 != 0){
+						++yy;
+						++distance;
+					}
+					distance = way_points_map[Point(xx, yy)];
 				}
+				break;
+			case 5:
+				distance = way_points_map[Point(p.x, p.y)];
 				break;
             default: // ERROR
                 distance = 0;
@@ -135,6 +132,7 @@ public:
     A_Star(vector<vector<Location>>& in_map_v, int in_s_x, int in_s_y,
                int in_e_x, int in_e_y, string& in_f_name, 
 			   unordered_map<Point, int> in_way_points_map, int in_flag){
+    /**************** Part 1 ****************/
 		start_time = omp_get_wtime();
         rows = (int)in_map_v.size();
         columns = (int)in_map_v[0].size();
@@ -155,6 +153,7 @@ public:
 		omp_init_lock(&final_health_lock);
         for (int i = 0; i < rows; i++){
             for (int j = 0; j < columns; j++){
+    /**************** Part 1 ****************/
 				for (int k = 0; k < 6; k++)
 					omp_init_lock(&(explored_lock[i][j][k]));
             }
@@ -339,17 +338,20 @@ public:
 			case 4:
 				heuristic_name = "Way Points";
 				break;
+			case 5:
+				heuristic_name = "Fully Way Points";
+				break;
 			default:
 				cout << "error" << endl;
 				break;
 		}
 
 		cout << "**************** A* on "<< file_name << " with heuristic function: " << heuristic_name << " ****************" << endl;
-		cout << "Path: " << path << endl;
+		//cout << "Path: " << path << endl;
 		cout << "Path Length: " << path.length() << endl;
 		cout << "Path Cost: " << path_cost << endl;
 		cout << "# Nodes Examined: " << node_examine << endl;
-		cout << "Finish time: " << 1000 * (end_time - start_time) << " ms" <<endl;
+		cout << "Manager-worker finish time: " << 1000 * (end_time - start_time) << "ms" <<endl;
 		cout << endl;
     }
     

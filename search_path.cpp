@@ -16,8 +16,8 @@ struct comp{
 };
 
 void handle_infile(string& file_name, vector<vector<Location>>& map_v,
-                   vector<Point>& way_points, int& start_x, int& start_y, 
-				   int& end_x, int& end_y){
+                   vector<Point>& way_points, vector<Point>& fully_way_points, 
+				   int& start_x, int& start_y,int& end_x, int& end_y){
     ifstream map_file(file_name);
     string line;
     int rows = 0, columns = 0;
@@ -30,8 +30,9 @@ void handle_infile(string& file_name, vector<vector<Location>>& map_v,
             for (int i = 0; i < (int)line.length(); i++){
                 map_v.back().push_back(Location(' ', line[i]));
 				// add way points
-				//if (line_num % 2 == 0 && i % 2 == 0)
+				if (line_num % 2 == 0 && i % 2 == 0)
 					way_points.push_back(Point(line_num, i));
+				fully_way_points.push_back(Point(line_num, i));
                 if (line[i] == 'S'){
                     start_x = line_num;
                     start_y = i;
@@ -60,6 +61,9 @@ void handle_waypoints(vector<vector<Location>> in_map_v, vector<Point> way_point
 	omp_lock_t way_point_lock, way_point_map_lock;
 	omp_init_lock(&way_point_lock);
 	omp_init_lock(&way_point_map_lock);
+
+	// Way point timer
+	double waypoint_start = omp_get_wtime();
 
 #pragma omp parallel
 	{
@@ -143,6 +147,8 @@ void handle_waypoints(vector<vector<Location>> in_map_v, vector<Point> way_point
 			omp_unset_lock(&way_point_map_lock);
 		} // end of idle loop	
 	} // end of parallel part
+	double waypoint_end = omp_get_wtime();
+	cout << "Finish generating waypoints: " << 1000 * (waypoint_end - waypoint_start) << "ms" << endl;
 }
 
 
@@ -160,18 +166,21 @@ int main(int argc, const char * argv[]) {
 
 	// Waypoints
 	vector<Point> way_points;
+	vector<Point> fully_way_points;
 	unordered_map<Point, int> way_points_map;
+	unordered_map<Point, int> fully_way_points_map;
     
     // parse input files and save results into map_v
-    /**************** Part 1 ****************/
 
+	cout << "Program start: core number: " << omp_get_num_threads() << endl;
     // Change the filename here if you want to run Part1 on a different map file
     string file_name = "large_map2.txt";
     int start_x, start_y, end_x, end_y;
-    handle_infile(file_name, map_v, way_points, start_x, start_y, end_x, end_y);
+    handle_infile(file_name, map_v, way_points, fully_way_points, start_x, start_y, end_x, end_y);
 
 	// Handle waypoints
 	handle_waypoints(map_v, way_points, way_points_map, end_x, end_y);
+	handle_waypoints(map_v, fully_way_points, fully_way_points_map, end_x, end_y);
     
     A_Star astar(map_v, start_x, start_y, end_x, end_y, file_name, way_points_map, 0);
     astar.search_path();
@@ -197,6 +206,9 @@ int main(int argc, const char * argv[]) {
     waypoints.search_path();
     waypoints.print_result();
     
+    A_Star fully_waypoints(map_v, start_x, start_y, end_x, end_y, file_name, fully_way_points_map, 5);
+    fully_waypoints.search_path();
+    fully_waypoints.print_result();
     return 0;
 }
 
